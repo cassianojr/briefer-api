@@ -5,7 +5,9 @@ const passport = require('passport');
 const User = require('../model/User');
 const {ensureAuthenticated} = require('../middlewares/ensureAuth');
 
-router.get('/', ensureAuthenticated ,(req, res) => {
+router.get('/' ,(req, res) => {
+	console.log(req.user);
+	
 	res.send('ok');
 });
 
@@ -40,6 +42,9 @@ router.post('/', (req, res) => {
 		}).catch(error => console.log(error));
 });
 
+/**
+ * Authentication route for api
+ */
 router.post('/login', (req, res, next) => {
 	passport.authenticate('local', (err, user, info) => {
 		if (err) {
@@ -54,6 +59,9 @@ router.post('/login', (req, res, next) => {
 	})(req, res, next);
 });
 
+/**
+ * Logout route
+ */
 router.post('/logout', (req, res) =>{
 	req.logout();
 	res.sendStatus(200);

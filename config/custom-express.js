@@ -27,7 +27,10 @@ module.exports = ()=>{
 	app.use(session({
 		secret: 's3cr3t',
 		resave: true,
-		saveUninitialized: true
+		saveUninitialized: false,
+		cookie: {
+			httpOnly: false
+		}
 	}));
 
 	//passport
