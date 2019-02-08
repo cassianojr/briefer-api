@@ -2,6 +2,7 @@ const express = require('express');
 const router = express.Router();
 
 const Briefing = require('../model/Briefing');
+const auth = require('../config/auth')();
 
 /**
  * Get all briefings of a logged user
@@ -16,10 +17,18 @@ router.get('/', (req, res)=>{
 	}).catch(errr=> console.log(err));
 });
 
+router.get('/briefing/:id_briefing', auth.authenticate(), (req, res)=>{
+	var id = req.params.id_briefing;
+	Briefing.findByPk(id)
+	.then(briefing=>{
+		res.send(briefing);
+	}).catch(err=>console.log(err));
+});
+
 /**
  * Create a briefing
  */
-router.post('/',(req, res)=>{
+router.post('/',auth.authenticate(),(req, res)=>{
 	//input validations
 	req.assert('cl_name', "O nome do cliente é obrigatório.").notEmpty();
 	req.assert('cl_phone', "O telefone do cliente é obrigatório.").notEmpty();
@@ -42,6 +51,43 @@ router.post('/',(req, res)=>{
 	Briefing.create(brief)
 	.then((briefing)=>{
 		res.status(201).json(briefing);
+	}).catch(err=> console.log(err));
+});
+
+/**
+ * Update a briefing
+ */
+router.put('/update', auth.authenticate(), (req, res)=>{
+	req.assert("id_briefing", "Você precisa passar o id do briefing").notEmpty();
+
+	var errors = req.validationErrors();
+	if(errors){
+		res.status(400).json(errors);
+		return;
+	}
+	var brief = req.body;
+	Briefing.update(brief, {where: {id_briefing: brief.id_briefing } })
+	.then(briefing=>{
+		res.status(202).send(briefing);
+		return;
+	}).catch(err=> console.log(err));
+});
+
+/**
+ * Delete a briefing
+ */
+router.delete('/', auth.authenticate(), (req, res)=>{
+	req.assert('id_briefing', "Você precisa passar o id do briefing").notEmpty();
+
+	var errors = req.validationErrors();
+	if(errors){
+		res.status(400).send(errors);
+	}
+
+	var {id_briefing} = req.body;
+	Briefing.destroy({ where: {id_briefing}})
+	.then(n=>{
+		res.sendStatus(200);
 	}).catch(err=> console.log(err));
 });
 
