@@ -4,14 +4,10 @@ const path = require('path');
 const consign = require('consign');
 const expressValidator = require('express-validator');
 
-const flash = require('connect-flash');
-const session = require('express-session');
-const passport = require('passport');
+const auth = require('./auth')();
 
-module.exports = ()=>{
+module.exports = () => {
 	var app = express();
-
-	require('./passport')(passport);
 
 	//static folder
 	var appDir = path.dirname(require.main.filename);
@@ -23,31 +19,7 @@ module.exports = ()=>{
 	}));
 	app.use(bodyParser.json());
 
-	//express session
-	app.use(session({
-		secret: 's3cr3t',
-		resave: true,
-		saveUninitialized: false,
-		cookie: {
-			httpOnly: false
-		}
-	}));
-
-	//passport
-	app.use(passport.initialize());
-	app.use(passport.session());
-
-	//connect flash
-	app.use(flash());
-
-	//global variables
-	app.use(function(req, res, next){
-		res.locals.success_msg = req.flash('success_msg');
-		res.locals.error_msg = req.flash('error_msg');
-		res.locals.error = req.flash('error');
-		res.locals.sess_user = req.user;
-		next();
-	});
+	app.use(auth.initialize());
 
 	//express validator
 	app.use(expressValidator());
@@ -56,8 +28,8 @@ module.exports = ()=>{
 
 	//auth db
 	db.authenticate()
-	.then(()=> console.log('Database connected'))
-	.catch(err=> console.log(`error ${err}`));
+		.then(() => console.log('Database connected'))
+		.catch(err => console.log(`error ${err}`));
 
 	//consign
 	consign().include('routes').into(app);

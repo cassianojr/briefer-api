@@ -2,7 +2,6 @@ const express = require('express');
 const router = express.Router();
 
 const Briefing = require('../model/Briefing');
-const {ensureAuthenticated} = require('../middlewares/ensureAuth');
 
 /**
  * Get all briefings of a logged user
@@ -20,7 +19,7 @@ router.get('/', (req, res)=>{
 /**
  * Create a briefing
  */
-router.post('/', ensureAuthenticated,(req, res)=>{
+router.post('/',(req, res)=>{
 	//input validations
 	req.assert('cl_name', "O nome do cliente é obrigatório.").notEmpty();
 	req.assert('cl_phone', "O telefone do cliente é obrigatório.").notEmpty();

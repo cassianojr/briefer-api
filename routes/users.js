@@ -1,13 +1,16 @@
 const express = require('express');
 const router = express.Router();
-const passport = require('passport');
 
 const User = require('../model/User');
-const {ensureAuthenticated} = require('../middlewares/ensureAuth');
 
-router.get('/' ,(req, res) => {
+const jwt = require('jwt-simple');
+const jwtCfg = require('../config/jwt-config');
+const auth = require('../config/auth')();
+const bcrypt = require('bcryptjs');
+
+router.get('/', (req, res) => {
 	console.log(req.user);
-	
+
 	res.send('ok');
 });
 
@@ -42,29 +45,50 @@ router.post('/', (req, res) => {
 		}).catch(error => console.log(error));
 });
 
+router.get('/login', auth.authenticate(), (req, res) => {
+	res.json('ok');
+});
+
 /**
  * Authentication route for api
  */
-router.post('/login', (req, res, next) => {
-	passport.authenticate('local', (err, user, info) => {
-		if (err) {
-			res.status(404).json(err);
-		}
+router.post('/login', (req, res) => {
+	if (!req.body.email && req.body.password) {
+		res.sendStatus(401);
+		return;
+	}
+	var email = req.body.email;
+	var password = req.body.password;
 
-		if (user) {
-			res.status(200).json({ userInfo: user });
-		}else{
-			res.status(401).json(info);
-		}
-	})(req, res, next);
+	User.findOne({ where: { email} })
+		.then(usr => {
+			
+			if (!usr) {
+				res.status(401).json("Email incorrect.");
+				return;
+			}
+
+			bcrypt.compare(password, usr.password, (err, isMatch) => {
+				if (err) throw err;
+
+				if (isMatch) {
+					var payload = {id: usr.id_user};
+					var token = jwt.encode(payload, jwtCfg.jwtSecret);
+					res.json({ token });
+
+				} else {
+					res.status(401).json("Password Incorrect.");
+					return;
+				}
+			});
+		}).catch(err => console.log(err));
 });
 
 /**
  * Logout route
  */
-router.post('/logout', (req, res) =>{
-	req.logout();
-	res.sendStatus(200);
+router.post('/logout', (req, res) => {
+
 });
 
 module.exports = (app) => {
