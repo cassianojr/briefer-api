@@ -17,6 +17,9 @@ router.get('/', (req, res)=>{
 	}).catch(errr=> console.log(err));
 });
 
+/**
+ * Get the briefing passed by id
+ */
 router.get('/briefing/:id_briefing', auth.authenticate(), (req, res)=>{
 	var id = req.params.id_briefing;
 	Briefing.findByPk(id)

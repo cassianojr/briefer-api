@@ -45,10 +45,6 @@ router.post('/', (req, res) => {
 		}).catch(error => console.log(error));
 });
 
-router.get('/login', auth.authenticate(), (req, res) => {
-	res.json('ok');
-});
-
 /**
  * Authentication route for api
  */
@@ -82,13 +78,6 @@ router.post('/login', (req, res) => {
 				}
 			});
 		}).catch(err => console.log(err));
-});
-
-/**
- * Logout route
- */
-router.post('/logout', (req, res) => {
-
 });
 
 module.exports = (app) => {
