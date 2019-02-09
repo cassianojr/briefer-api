@@ -2,6 +2,9 @@ const Sequelize = require('sequelize');
 const db = require('../config/database');
 
 const User = require('./User');
+const Budget = require('./Budget');
+const Feature= require('./Feature');
+
 
 const Briefing = db.define('briefing', {
 	id_briefing: {
@@ -58,5 +61,16 @@ const Briefing = db.define('briefing', {
 });
 
 Briefing.belongsTo(User, { foreignKey: 'id_user', as: 'user' });
+Briefing.hasMany(Budget, {foreignKey: 'id_briefing'});
+
+Briefing.belongsToMany(Feature, {
+	through: 'briefing_feature',
+	foreignKey: 'id_briefing'
+});
+Feature.belongsToMany(Briefing, {
+	through: 'briefing_feature',
+	foreignKey: 'id_feature'
+});
+
 
 module.exports = Briefing;

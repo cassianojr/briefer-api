@@ -1,8 +1,6 @@
 const Sequelize = require('sequelize');
 const db = require('../config/database');
 
-const Briefing = require('./Briefing');
-
 const Budget = db.define('budget', {
 	id_budget: {
 		type: Sequelize.INTEGER,
@@ -23,7 +21,5 @@ const Budget = db.define('budget', {
 	tableName: 'budget',
 	timestamps: false
 });
-
-Budget.belongsTo(Briefing, { foreignKey: 'id_briefing', as:'briefing' });
 
 module.exports = Budget;
