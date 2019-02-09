@@ -13,10 +13,10 @@ const User = require('../model/User');
 module.exports = ()=>{
 	var strategy = new Strategy(params, (payload, done)=>{
 		
-		User.findByPk(payload)
+		User.findByPk(payload.id)
 		.then(usr=>{
 			if(usr){
-				return done(null, {id: usr.id});
+				return done(null, {id: usr.id_user});
 			}else{
 				return done(new Error("User not found"), null);
 			}

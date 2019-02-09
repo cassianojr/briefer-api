@@ -6,12 +6,10 @@ const auth = require('../config/auth')();
 
 /**
  * Get all briefings of a logged user
- * Attention: user id hardcoded 
  */
-router.get('/', (req, res)=>{
-	var usr = {};
-	usr.id_user = 14;
-	Briefing.findAll({where: {id_user: usr.id_user}})
+router.get('/', auth.authenticate(),(req, res)=>{
+	var id_user = req.user.id;
+	Briefing.findAll({where: {id_user}})
 	.then(briefs=>{
 		res.status(200).send(briefs);
 	}).catch(errr=> console.log(err));

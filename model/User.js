@@ -36,8 +36,4 @@ const User = db.define('user', {
 	timestamps: false
 });
 
-User.prototype.validPassword = async (password)=>{
-	return await bcrypt.compare(password, this.password);
-}
-
 module.exports = User;
