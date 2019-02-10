@@ -184,12 +184,34 @@ router.put('/update', auth.authenticate(), (req, res) => {
 		res.status(400).json(errors);
 		return;
 	}
-	var brief = req.body;
-	Briefing.update(brief, { where: { id_briefing: brief.id_briefing } })
-		.then(briefing => {
-			res.status(202).send(briefing);
-			return;
-		}).catch(err => console.log(err));
+
+	var resp = req.body;
+
+	var features = req.body.features;
+	var budget = req.body.budget;
+
+	//parse briefing
+	var briefing = JSON.parse(JSON.stringify(req.body));
+	delete briefing.features;
+	delete briefing.budget;
+
+	//create array of promises for update features
+	var updFeatures = [];
+	[...features].forEach(ftr => {
+		updFeatures.push(Feature.update(ftr, {where: {id_feature: ftr.id_feature}}));
+	});
+	
+	//resolve the promises of update briefing and budget
+	Promise.all([
+		Briefing.update(briefing, {where: {id_briefing: briefing.id_briefing}}),
+		Budget.update(budget, { where: {id_budget: budget.id_budget}})
+	]).then(result=>{
+		//resolve a array of promises for update features
+		Promise.all(updFeatures).then(upd=>{
+			//send response
+			res.status(202).send(resp);
+		});
+	});
 });
 
 /**
