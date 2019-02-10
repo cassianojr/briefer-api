@@ -24,7 +24,36 @@ router.get('/', auth.authenticate(), (req, res) => {
 			}
 		]
 	}).then(briefs => {
-		res.status(200).send(briefs);
+
+		//Promise that clean the output, this remove the join table (that's useless) and remove array for budget
+		var cleanOutput = new Promise((resolve) => {
+			var response = [];
+			briefs.forEach(brief => {
+				//create a array of features
+				var features = [];
+				brief.briefing_features.forEach(briefing_feature => {
+					features.push(briefing_feature.feature);
+				});
+				//insert that array on output
+				briefing = brief.toJSON();
+				briefing.features = features;
+
+				briefing.budget = briefing.budgets[0];
+
+				//clean the useless data
+				delete briefing.briefing_features;
+				delete briefing.budgets;
+
+				//push output on new array
+				response.push(briefing);
+			});
+			resolve(response);
+		});
+
+		//execute the cleanup and send the result
+		cleanOutput.then(response => {
+			res.status(200).send(response);
+		});
 	}).catch(err => console.log(err));
 });
 
@@ -33,10 +62,47 @@ router.get('/', auth.authenticate(), (req, res) => {
  */
 router.get('/briefing/:id_briefing', auth.authenticate(), (req, res) => {
 	var id = req.params.id_briefing;
-	Briefing.findByPk(id)
-		.then(briefing => {
-			res.send(briefing);
-		}).catch(err => console.log(err));
+	Briefing.findByPk(id, {
+		include: [
+			{
+				model: Budget,
+				required: true
+			}, {
+				model: BriefingFeature,
+				include: [Feature]
+			}
+		]
+	}).then(brief => {
+
+		//Promise that clean the output, this remove the join table (that's useless) and remove array for budget
+		var cleanOutput = new Promise((resolve) => {
+			
+			var response;
+			//create a array of features
+			var features = [];
+			brief.briefing_features.forEach(briefing_feature => {
+				features.push(briefing_feature.feature);
+			});
+			//insert that array on output
+			briefing = brief.toJSON();
+			briefing.features = features;
+
+			briefing.budget = briefing.budgets[0];
+
+			//clean the useless data
+			delete briefing.briefing_features;
+			delete briefing.budgets;
+
+			//push output on new array
+			response = briefing;
+			resolve(response);
+		});
+
+		//execute the cleanup and send the result
+		cleanOutput.then(response => {
+			res.status(200).send(response);
+		});
+	}).catch(err => console.log(err));
 });
 
 /**
@@ -76,7 +142,8 @@ router.post('/', auth.authenticate(), (req, res) => {
 	]).then(result => {
 		//get the first result, shoud be a briefing
 		var briefing = result[0];
-
+		var response = req.body;
+		response.id_briefing = briefing.id_briefing;
 		//create a promise for insert the join table of briefing and feature
 		var insertBriefingFeature = new Promise((resolve, reject) => {
 			var createBriefingFeature = [];
@@ -105,7 +172,7 @@ router.post('/', auth.authenticate(), (req, res) => {
 				Budget.create(budget)
 			).then(rs => {
 				//return result
-				res.status(201).send("ok");
+				res.status(201).send(response);
 			}).catch(err => console.log(err));
 		}).catch(err => console.log(err));
 	}).catch(err => console.log(err));
