@@ -25,26 +25,12 @@ router.get('/', auth.authenticate(), (req, res) => {
 		]
 	}).then(briefs => {
 
-		//Promise that clean the output, this remove the join table (that's useless) and remove array for budget
+		//Promise that clean the output
 		var cleanOutput = new Promise((resolve) => {
 			var response = [];
 			briefs.forEach(brief => {
-				//create a array of features
-				var features = [];
-				brief.briefing_features.forEach(briefing_feature => {
-					features.push(briefing_feature.feature);
-				});
-				//insert that array on output
-				briefing = brief.toJSON();
-				briefing.features = features;
 
-				briefing.budget = briefing.budgets[0];
-
-				//clean the useless data
-				delete briefing.briefing_features;
-				delete briefing.budgets;
-
-				//push output on new array
+				var briefing = cleanBriefing(brief);
 				response.push(briefing);
 			});
 			resolve(response);
@@ -73,29 +59,11 @@ router.get('/briefing/:id_briefing', auth.authenticate(), (req, res) => {
 			}
 		]
 	}).then(brief => {
-
-		//Promise that clean the output, this remove the join table (that's useless) and remove array for budget
+		//Promise that clean the output
 		var cleanOutput = new Promise((resolve) => {
-			
-			var response;
-			//create a array of features
-			var features = [];
-			brief.briefing_features.forEach(briefing_feature => {
-				features.push(briefing_feature.feature);
-			});
-			//insert that array on output
-			briefing = brief.toJSON();
-			briefing.features = features;
 
-			briefing.budget = briefing.budgets[0];
-
-			//clean the useless data
-			delete briefing.briefing_features;
-			delete briefing.budgets;
-
-			//push output on new array
-			response = briefing;
-			resolve(response);
+			var briefing = cleanBriefing(brief);
+			resolve(briefing);
 		});
 
 		//execute the cleanup and send the result
@@ -104,6 +72,33 @@ router.get('/briefing/:id_briefing', auth.authenticate(), (req, res) => {
 		});
 	}).catch(err => console.log(err));
 });
+
+/**
+ * Function that clean a briefing of useless data like join table
+ * @param {Object} briefing 
+ */
+function cleanBriefing(brief) {
+	var response;
+	//create a array of features
+	var features = [];
+	brief.briefing_features.forEach(briefing_feature => {
+		features.push(briefing_feature.feature);
+	});
+	//insert that array on output
+	briefing = brief.toJSON();
+	briefing.features = features;
+
+	briefing.budget = briefing.budgets[0];
+
+	//clean the useless data
+	delete briefing.briefing_features;
+	delete briefing.budgets;
+
+	//push output on new array
+	response =briefing;
+
+	return response;
+}
 
 /**
  * Create a briefing
