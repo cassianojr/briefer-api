@@ -35,7 +35,7 @@ create table budget(
 	time_goal date,
 	cost double,
 	id_briefing int,
-	FOREIGN KEY(id_briefing) REFERENCES briefing(id_briefing)
+	FOREIGN KEY(id_briefing) REFERENCES briefing(id_briefing) ON DELETE CASCADE
 );
 
 create table feature(
@@ -48,5 +48,5 @@ create table briefing_feature(
 	id_briefing int,
 	id_feature int,
 	FOREIGN KEY(id_briefing) REFERENCES briefing(id_briefing),
-	FOREIGN KEY(id_feature) REFERENCES feature(id_feature)
+	FOREIGN KEY(id_feature) REFERENCES feature(id_feature) ON DELETE CASCADE
 );

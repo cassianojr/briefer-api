@@ -4,6 +4,7 @@ const router = express.Router();
 const Briefing = require('../model/Briefing');
 const Budget = require('../model/Budget');
 const Feature = require('../model/Feature');
+const BriefingFeature = require('../model/BriefingFeature');
 
 const auth = require('../config/auth')();
 
@@ -17,11 +18,9 @@ router.get('/', auth.authenticate(), (req, res) => {
 			{
 				model: Budget,
 				required: true
-			},{
-				model: Feature,
-				through: {
-					attributes: ['briefing_id', 'feature_id']
-				}
+			}, {
+				model: BriefingFeature,
+				include: [Feature]
 			}
 		]
 	}).then(briefs => {
@@ -61,12 +60,55 @@ router.post('/', auth.authenticate(), (req, res) => {
 		res.status(400).json(errors);
 		return;
 	}
-	//insert on db
+
 	var brief = req.body;
-	Briefing.create(brief)
-		.then((briefing) => {
-			res.status(201).json(briefing);
+	var budget = brief.budgets[0];
+
+	var createFeatues = [];
+	[...brief.features].forEach(ftr => {
+		createFeatues.push(Feature.create(ftr));
+	});
+
+	//resolve promises for create a brief and all the features
+	Promise.all([
+		Briefing.create(brief),
+		Promise.all(createFeatues)
+	]).then(result => {
+		//get the first result, shoud be a briefing
+		var briefing = result[0];
+
+		//create a promise for insert the join table of briefing and feature
+		var insertBriefingFeature = new Promise((resolve, reject) => {
+			var createBriefingFeature = [];
+			var i = 0;
+			do {
+				var featureCreated = result[1][i];
+				var briefingFeature = {
+					id_briefing: briefing.id_briefing,
+					id_feature: featureCreated.id_feature
+				}
+				createBriefingFeature.push(BriefingFeature.create(briefingFeature));
+
+				i++;
+				if (i <= result.length) {
+					resolve(createBriefingFeature);
+				}
+			} while (i < result.length);
+		});
+		//execute that promise
+		insertBriefingFeature.then((createBriefingFeature) => {
+			//set foreign key for briefing
+			budget.id_briefing = briefing.id_briefing;
+			//execute all the promise for creating join table and budget
+			Promise.all(
+				createBriefingFeature,
+				Budget.create(budget)
+			).then(rs => {
+				//return result
+				res.status(201).send("ok");
+			}).catch(err => console.log(err));
 		}).catch(err => console.log(err));
+	}).catch(err => console.log(err));
 });
 
 /**
