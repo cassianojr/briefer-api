@@ -3,6 +3,9 @@ const bodyParser = require('body-parser');
 const path = require('path');
 const consign = require('consign');
 const expressValidator = require('express-validator');
+const mongoose = require('mongoose');
+
+const { MongoURI } = require('./keys');
 
 const auth = require('./auth')();
 
@@ -24,12 +27,10 @@ module.exports = () => {
 	//express validator
 	app.use(expressValidator());
 
-	var db = require('./database');
-
-	//auth db
-	db.authenticate()
-		.then(() => console.log('Database connected'))
-		.catch(err => console.log(`error ${err}`));
+	//mongoose
+	mongoose.connect(MongoURI, { useNewUrlParser: true })
+		.then(() => console.log('[!] Database Connected'))
+		.catch(err => console.log(`[!] Error: ${err}`));
 
 	//consign
 	consign().include('routes').into(app);

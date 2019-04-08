@@ -1,39 +1,31 @@
-const Sequelize = require('sequelize');
-const db = require('../config/database');
+const mongoose = require('mongoose');
 
 const bcrypt = require('bcryptjs');
 const salt = bcrypt.genSaltSync();
 
-const User = db.define('user', {
-	id_user: {
-		type: Sequelize.INTEGER,
-		primaryKey: true,
-		autoIncrement: true
-	},
+const UserSchema = new mongoose.Schema({
 	name: {
-		type: Sequelize.STRING
+		type: String,
+		required: true
 	},
-	company: {
-		type: Sequelize.STRING
-	},
-	email:{
-		type: Sequelize.STRING
+	email: {
+		type: String,
+		required: true
 	},
 	password: {
-		type: Sequelize.STRING
-	},
-	post: {
-		type: Sequelize.STRING
+		type: String,
+		required: true
 	}
-}, {
-	hooks: {
-		beforeCreate: (usr)=>{
-			usr.password = bcrypt.hashSync(usr.password, salt);
-		}	
-	},
-	freezeTableName: true,
-	tableName: 'user',
-	timestamps: false
 });
 
+UserSchema.pre("save", function(next){
+	if(!this.isModified("password")){
+		return next();
+	}
+
+	this.password = bcrypt.hashSync(this.password, salt);
+	next();
+});
+
+const User = mongoose.model('User', UserSchema, "user");
 module.exports = User;

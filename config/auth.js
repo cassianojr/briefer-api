@@ -12,8 +12,7 @@ const User = require('../model/User');
 
 module.exports = ()=>{
 	var strategy = new Strategy(params, (payload, done)=>{
-		
-		User.findByPk(payload.id)
+		User.findById(payload.id)
 		.then(usr=>{
 			if(usr){
 				return done(null, {id: usr.id_user});

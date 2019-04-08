@@ -17,13 +17,12 @@ router.get('/', (req, res) => {
 /**
  * Create a user and validate the data
  */
-router.post('/', (req, res) => {
+router.post('/', async (req, res) => {
 
 	//validation
 	req.assert('name', 'O campo nome está vasio.').notEmpty();
 	req.assert('email', 'O campo e-mail não é válido.').isEmail();
-	req.assert('password', 'O campo senha está vasio.').notEmpty();
-	req.assert('post', 'O campo crago está vasio.').notEmpty();
+	req.assert('password', 'O campo senha está vazio.').notEmpty();
 
 	var errors = req.validationErrors();
 	if (errors) {
@@ -33,16 +32,27 @@ router.post('/', (req, res) => {
 
 	//create usr
 	var usr = req.body;
-	User.findOrCreate({ where: { email: usr.email }, defaults: usr })
-		.spread((user, created) => {
-			if (created === false) {
-				res.status(400).json("O este e-mail ja foi cadastrado!");
-				return;
-			}
-			res.status(201).json(user);
-			return;
 
-		}).catch(error => console.log(error));
+	const emailExists =await User.findOne({email: usr.email});
+
+	//verify if the email exists
+	if(emailExists){
+		res.sendStatus(400);
+		return;
+	}
+
+	const {name, email, password} = usr;
+	const newUser = new User({
+		name,
+		email,
+		password
+	});
+
+	const result = await newUser.save();
+
+	console.log(result);
+
+	res.status(201).json(result);
 });
 
 /**
@@ -56,7 +66,7 @@ router.post('/login', (req, res) => {
 	var email = req.body.email;
 	var password = req.body.password;
 
-	User.findOne({ where: { email} })
+	User.findOne({email})
 		.then(usr => {
 			
 			if (!usr) {
@@ -68,7 +78,8 @@ router.post('/login', (req, res) => {
 				if (err) throw err;
 
 				if (isMatch) {
-					var payload = {id: usr.id_user};
+					console.log(usr);
+					var payload = {id: usr._id};
 					var token = jwt.encode(payload, jwtCfg.jwtSecret);
 					res.json({ token });
 

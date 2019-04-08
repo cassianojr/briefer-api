@@ -1,77 +1,74 @@
-const Sequelize = require('sequelize');
-const db = require('../config/database');
+const mongoose = require('mongoose');
 
-const User = require('./User');
-const Budget = require('./Budget');
-const Feature= require('./Feature');
-const BriefingFeature = require('./BriefingFeature');
-
-const Briefing = db.define('briefing', {
-	id_briefing: {
-		type: Sequelize.INTEGER,
-		primaryKey: true,
-		autoIncrement: true
-	},
+const BriefingSchema = new mongoose.Schema({
 	cl_name: {
-		type: Sequelize.STRING
+		type: String,
+		required: true
 	},
-	cl_phone: {
-		type: Sequelize.STRING
+	cl_phone:{
+		type: String,
+		required: true
 	},
 	cl_email: {
-		type: Sequelize.STRING
+		type: String,
+		required: true
 	},
 	examples: {
-		type: Sequelize.STRING
+		type: String
 	},
 	num_pages: {
-		type: Sequelize.INTEGER
+		type: Number
 	},
 	has_visual: {
-		type: Sequelize.BOOLEAN
+		type: Boolean,
+		required: true
 	},
 	has_logo: {
-		type: Sequelize.BOOLEAN
+		type: Boolean,
+		require: true
 	},
 	has_current: {
-		type: Sequelize.BOOLEAN
+		type: Boolean,
+		required: true
 	},
 	description: {
-		type: Sequelize.TEXT
+		type: String,
+		required: true
 	},
 	proj_title: {
-		type: Sequelize.STRING
+		type: String,
+		required: true
 	},
 	social_media: {
-		type: Sequelize.STRING
+		type: String
 	},
 	outline: {
-		type: Sequelize.TEXT
+		type: String,
+		required: true
 	},
 	objective: {
-		type: Sequelize.TEXT
+		type: String,
+		required: true
 	},
-	id_user:{
-		type: Sequelize.INTEGER
+	createdBy: {
+		type: mongoose.Schema.Types.ObjectId,
+		ref: 'User'
+	},
+	features: {
+		type: [String],
+		required: true
+	},
+	budget: {
+		time_goal: {
+			type: Date,
+			required: true
+		},
+		cost: {
+			type: Number,
+			required: true
+		}
 	}
-},{
-	freezeTableName: true,
-	tableName: 'briefing',
-	timestamps: false
 });
 
-Briefing.belongsTo(User, { foreignKey: 'id_user', as: 'user' });
-Briefing.hasMany(Budget, {foreignKey: 'id_briefing'});
-
-Briefing.hasMany(BriefingFeature,  {foreignKey: 'id_briefing'});
-// Briefing.belongsToMany(Feature, {
-// 	through: 'briefing_feature',
-// 	foreignKey: 'id_briefing'
-// });
-// Feature.belongsToMany(Briefing, {
-// 	through: 'briefing_feature',
-// 	foreignKey: 'id_feature'
-// });
-
-
+const Briefing = mongoose.model('Birefing', BriefingSchema, "briefing");
 module.exports = Briefing;
