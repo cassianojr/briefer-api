@@ -15,6 +15,24 @@ router.get('/', (req, res) => {
 });
 
 /**
+ * Returns _id, name and email of a user that corresponds to email passed
+ */
+router.get('/user/email/:email', auth.authenticate(), (req, res) => {
+	const { email } = req.params;
+
+	User.findOne({email}, "-password -__v")
+	.then(usr=>{
+		console.log(usr);
+		res.status(200).json(usr);
+	}).catch(err=> {
+		res.sendStatus(500);
+		console.log(err);
+	});
+
+});
+
+
+/**
  * Create a user and validate the data
  */
 router.post('/', async (req, res) => {
@@ -33,15 +51,15 @@ router.post('/', async (req, res) => {
 	//create usr
 	var usr = req.body;
 
-	const emailExists =await User.findOne({email: usr.email});
+	const emailExists = await User.findOne({ email: usr.email });
 
 	//verify if the email exists
-	if(emailExists){
+	if (emailExists) {
 		res.sendStatus(400);
 		return;
 	}
 
-	const {name, email, password} = usr;
+	const { name, email, password } = usr;
 	const newUser = new User({
 		name,
 		email,
@@ -66,9 +84,9 @@ router.post('/login', (req, res) => {
 	var email = req.body.email;
 	var password = req.body.password;
 
-	User.findOne({email})
+	User.findOne({ email })
 		.then(usr => {
-			
+
 			if (!usr) {
 				res.status(401).json("Email incorrect.");
 				return;
@@ -79,7 +97,7 @@ router.post('/login', (req, res) => {
 
 				if (isMatch) {
 					console.log(usr);
-					var payload = {id: usr._id};
+					var payload = { id: usr._id };
 					var token = jwt.encode(payload, jwtCfg.jwtSecret);
 					res.json({ token });
 

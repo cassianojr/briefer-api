@@ -21,8 +21,8 @@ router.get('/', auth.authenticate(), (req, res) => {
 /**
  * Get the briefing passed by id
  */
-router.get('/briefing/:id_briefing', auth.authenticate(), (req, res) => {
-	var id = req.params.id_briefing;
+router.get('/briefing/:id', auth.authenticate(), (req, res) => {
+	var {id} = req.params;
 	Briefing.findById(id)
 	.then(result=> res.json(result));
 });
