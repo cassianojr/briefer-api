@@ -18,12 +18,23 @@ const UserSchema = new mongoose.Schema({
 	}
 });
 
-UserSchema.pre("save", function(next){
-	if(!this.isModified("password")){
+UserSchema.pre("save", function (next) {
+	if (!this.isModified("password")) {
 		return next();
 	}
 
 	this.password = bcrypt.hashSync(this.password, salt);
+	next();
+});
+
+UserSchema.pre("updateOne", function (next) {
+	let { password } = this._update;
+	if(password){
+		password = bcrypt.hashSync(password, salt);
+	
+		this.updateOne({password});
+	}	
+
 	next();
 });
 

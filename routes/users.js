@@ -17,20 +17,18 @@ router.get('/', (req, res) => {
 /**
  * Returns _id, name and email of a user that corresponds to email passed
  */
-router.get('/user/email/:email', auth.authenticate(), (req, res) => {
+router.get('/user/email/:email', (req, res) => {
 	const { email } = req.params;
 
-	User.findOne({email}, "-password -__v")
-	.then(usr=>{
-		console.log(usr);
-		res.status(200).json(usr);
-	}).catch(err=> {
-		res.sendStatus(500);
-		console.log(err);
-	});
+	User.findOne({ email }, "-__v")
+		.then(usr => {
+			res.status(200).json(usr);
+		}).catch(err => {
+			res.sendStatus(500);
+			console.log(err);
+		});
 
 });
-
 
 /**
  * Create a user and validate the data
@@ -67,10 +65,41 @@ router.post('/', async (req, res) => {
 	});
 
 	const result = await newUser.save();
-
-	console.log(result);
-
 	res.status(201).json(result);
+});
+
+/**
+ * Update a user
+ */
+router.put('/update', auth.authenticate(), async (req, res) => {
+
+	const token = req.headers.authorization.split(' ')[1];
+	const { id } = jwt.decode(token, jwtCfg.jwtSecret);
+
+	const userToUpdate = req.body;
+	const user = await User.findById(id);
+
+	//validate the passwords
+	const { old_password, new_password, confirm_password } = userToUpdate;
+	if (old_password && new_password && confirm_password) {
+
+		if (!(old_password === '' && new_password === '' && confirm_password === '')) {
+			if (new_password !== confirm_password) {
+				res.status(400).json("As senhas não correspondem!");
+				return;
+			}
+			const passwordMatch = await bcrypt.compare(old_password, user.password);
+			if (!passwordMatch) {
+				res.status(400).json("Senha atual incorreta!");
+				return;
+			}
+		}
+	}
+	if (new_password) userToUpdate.password = new_password;
+
+	User.updateOne({ _id: user._id }, userToUpdate, { new: true })
+		.then(res.status(202).json(userToUpdate))
+		.catch(err=> res.sendStatus(500));
 });
 
 /**
@@ -81,8 +110,8 @@ router.post('/login', (req, res) => {
 		res.sendStatus(401);
 		return;
 	}
-	var email = req.body.email;
-	var password = req.body.password;
+	const email = req.body.email;
+	const password = req.body.password;
 
 	User.findOne({ email })
 		.then(usr => {
@@ -97,9 +126,10 @@ router.post('/login', (req, res) => {
 
 				if (isMatch) {
 					console.log(usr);
-					var payload = { id: usr._id };
-					var token = jwt.encode(payload, jwtCfg.jwtSecret);
-					res.json({ token });
+					const payload = { id: usr._id };
+					const token = jwt.encode(payload, jwtCfg.jwtSecret);
+					const { name, _id, email } = usr;
+					res.json({ token, name, id: _id, email });
 
 				} else {
 					res.status(401).json("Password Incorrect.");
