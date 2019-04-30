@@ -65,7 +65,7 @@ router.get('/user/email/:email', (req, res) => {
  * @apiSuccess {String} email Email of the User.
  * @apiSuccess {String} password Password of the User.
  * 
- * @apiError FieldEmpty This error is sended when one or more field was not sended.
+ * @apiError FieldEmpty This error is sended when one or more mandatory field was not sended. This return a array with the errors.
  * @apiErrorExample Error-Response:
  * 		HTTP/1.1 400 Bad Request
  * 		[
@@ -125,6 +125,7 @@ router.post('/', async (req, res) => {
  * @apiGroup User
  * @apiVersion 1.0.0
  * @apiPermission user
+ * @apiHeader {String} authorization Authorization token.
  * 
  * @apiParam {String} name The User's name.
  * @apiParam {String} email The User's email.
@@ -151,6 +152,11 @@ router.post('/', async (req, res) => {
  * 		{
  * 			"error": "CurrentPasswordInvalid"
  * 		}
+ * 
+ * @apiError Unauthorized The JWT token passed is invalid.
+ * @apiErrorExample Error-Response:
+ * 		HTTP/1.1 401 Unauthorized
+ * 		Unauthorized
  * 
  * @apiSuccessExample Success-Response:
  * 		HTTP/1.1 202 Accepted
