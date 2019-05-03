@@ -7,6 +7,8 @@ const auth = require('../config/auth')();
 const jwt = require('jwt-simple');
 const jwtCfg = require('../config/jwt-config');
 
+const logger = require('../config/logger');
+
 /**
  * @api {get} /api/briefings Request a list of briefings related to the user.
  * @apiName GetBriefings
@@ -56,7 +58,12 @@ router.get('/', auth.authenticate(), (req, res) => {
 	const token = req.headers.authorization.split(' ')[1];
 	const usr = jwt.decode(token, jwtCfg.jwtSecret);
 
-	Briefing.find({ createdBy: usr.id }).then(result => res.json(result));
+	Briefing.find({ createdBy: usr.id })
+		.then(result => res.json(result))
+		.catch(err => {
+			logger.error(err);
+			console.log(err);
+		});
 });
 
 /**
@@ -120,7 +127,11 @@ router.get('/', auth.authenticate(), (req, res) => {
 router.get('/briefing/:id', auth.authenticate(), (req, res) => {
 	var { id } = req.params;
 	Briefing.findById(id)
-		.then(result => res.json(result));
+		.then(result => res.json(result))
+		.catch(err => {
+			logger.error(err);
+			console.log(err);
+		});
 });
 
 
@@ -223,6 +234,9 @@ router.post('/', auth.authenticate(), (req, res) => {
 	newBriefing.save()
 		.then((result) => {
 			res.status(201).json(result);
+		}).catch(err=> {
+			logger.error(err);
+			console.log(err);
 		});
 });
 
@@ -316,6 +330,9 @@ router.put('/update', auth.authenticate(), (req, res) => {
 	Briefing.findByIdAndUpdate(briefing._id, briefing, { new: true })
 		.then(result => {
 			res.status(202).json(result);
+		}).catch(err=>{
+			logger.error(err);
+			console.log(err);
 		});
 });
 
@@ -360,7 +377,10 @@ router.delete('/', auth.authenticate(), (req, res) => {
 	Briefing.findByIdAndDelete(_id)
 		.then(result => {
 			res.sendStatus(204);
-		}).catch(err => console.log(err));
+		}).catch(err => {
+			logger.error(err);
+			console.log(err);
+		});
 });
 
 module.exports = (app) => {

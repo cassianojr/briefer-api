@@ -9,6 +9,9 @@ const { MongoURI } = require('./keys');
 
 const auth = require('./auth')();
 
+const logger = require('./logger');
+const winston = require('winston');
+
 module.exports = () => {
 	var app = express();
 
@@ -30,10 +33,18 @@ module.exports = () => {
 	//mongoose
 	mongoose.connect(MongoURI, { useNewUrlParser: true })
 		.then(() => console.log('[!] Database Connected'))
-		.catch(err => console.log(`[!] Error: ${err}`));
+		.catch(err => {
+			logger.error(err);
+			console.log(`[!] Error: ${err}`);
+		});
 
 	//consign
 	consign().include('routes').into(app);
+
+	//winston logger exceptions
+	winston.exceptions.handle(
+		new winston.transports.File({filename: '../logs/exceptions.log'})
+	);
 
 	return app;
 }

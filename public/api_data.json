@@ -1016,6 +1016,12 @@
             "optional": false,
             "field": "FieldEmpty",
             "description": "<p>This error is sended when one or more mandatory field was not sended. This return a array with the errors.</p>"
+          },
+          {
+            "group": "Error 4xx",
+            "optional": false,
+            "field": "EmailAlreadyExists",
+            "description": "<p>Indicates that the email already exists on database.</p>"
           }
         ]
       },
@@ -1023,6 +1029,11 @@
         {
           "title": "Error-Response:",
           "content": "HTTP/1.1 400 Bad Request\n[\n\t{\n\t\t\"location\": \"params\",\n\t\t\"param\": \"name\",\n\t\t\"msg\": \"The field name cannot be empty.\"\n\t}\n]",
+          "type": "json"
+        },
+        {
+          "title": "Error-Response:",
+          "content": "HTTP/1.1 409 Conflict\n{\n\t\"error\": \"EmailAlreadyExists\"\n}",
           "type": "json"
         }
       ]
