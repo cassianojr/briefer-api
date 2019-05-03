@@ -8,6 +8,8 @@ const jwtCfg = require('../config/jwt-config');
 const auth = require('../config/auth')();
 const bcrypt = require('bcryptjs');
 
+const logger = require('../config/logger');
+
 /**
  * @api {get} /api/users/user/email/:email Request User information by email.
  * @apiName GetUserByEmail
@@ -41,10 +43,12 @@ router.get('/user/email/:email', (req, res) => {
 		.then(usr => {
 			if (!usr) {
 				res.status(404).json({ "error": "UserNotFound" });
+				return;
 			}
 			res.status(200).json(usr);
 		}).catch(err => {
 			res.sendStatus(500);
+			logger.log('error', err);
 			console.log(err);
 		});
 });
@@ -75,6 +79,14 @@ router.get('/user/email/:email', (req, res) => {
  * 				"msg": "The field name cannot be empty."
  * 			}
  * 		]
+ * 
+ * @apiError EmailAlreadyExists Indicates that the email already exists on database.
+ * @apiErrorExample Error-Response:
+ * 		HTTP/1.1 409 Conflict
+ * 		{
+ * 			"error": "EmailAlreadyExists"
+ * 		}
+ * 
  * @apiSuccessExample Success-Response:
  * 		HTTP/1.1 201 Created
  *		{
@@ -84,7 +96,7 @@ router.get('/user/email/:email', (req, res) => {
  *			"password": "encrypted-password",
  *		}
  */
-router.post('/', async (req, res) => {
+router.post('/', (req, res) => {
 
 	//validation
 	req.assert('name', 'The field name cannot be empty.').notEmpty();
@@ -100,13 +112,18 @@ router.post('/', async (req, res) => {
 	//create usr
 	var usr = req.body;
 
-	const emailExists = await User.findOne({ email: usr.email });
-
 	//verify if the email exists
-	if (emailExists) {
-		res.sendStatus(400);
-		return;
-	}
+	User.findOne({ email: usr.email })
+		.then(emailExists => {
+			if (emailExists) {
+				res.status(409).json({ "error": "EmailAlreadyExists" });
+				return;
+			}
+		}).catch(err => {
+			res.sendStatus(500);
+			logger.error(err);
+			console.log(err);
+		});
 
 	const { name, email, password } = usr;
 	const newUser = new User({
@@ -115,8 +132,13 @@ router.post('/', async (req, res) => {
 		password
 	});
 
-	const result = await newUser.save();
-	res.status(201).json(result);
+	newUser.save()
+		.then(result => {
+			res.status(201).json(result);
+		}).catch(err => {
+			logger.error(err);
+			console.log(err);
+		});
 });
 
 /**
@@ -197,8 +219,14 @@ router.put('/update', auth.authenticate(), async (req, res) => {
 			User.findOne({ _id: user.id }, "-password -__v")
 				.then(usr => {
 					res.status(202).json(usr);
-				}).catch(err => res.sendStatus(500));
-		}).catch(err => res.sendStatus(500));
+				}).catch(err => {
+					logger.error(err);
+					res.sendStatus(500)
+				});
+		}).catch(err => {
+			logger.error(err);
+			res.sendStatus(500)
+		});
 });
 
 /**
@@ -255,7 +283,6 @@ router.post('/login', (req, res) => {
 
 	User.findOne({ email })
 		.then(usr => {
-
 			if (!usr) {
 				res.status(401).json({ error: "EmailIncorrect" });
 				return;
@@ -275,7 +302,10 @@ router.post('/login', (req, res) => {
 					return;
 				}
 			});
-		}).catch(err => console.log(err));
+		}).catch(err => {
+			logger.error(err);
+			console.log(err)
+		});
 });
 
 module.exports = (app) => {
