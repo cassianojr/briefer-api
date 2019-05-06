@@ -2,7 +2,7 @@ const app = require('./config/custom-express')();
 const http = require('http').Server(app);
 const cluster = require('cluster');
 
-const numWorkers = process.env.WEB_CONCURRENCY || 4;
+const numWorkers = process.env.WEB_CONCURRENCY || 1;
 if(cluster.isMaster){
 	for(let i = 0; i<numWorkers; i++){
 		cluster.fork();
