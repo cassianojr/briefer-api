@@ -5,6 +5,9 @@ const consign = require('consign');
 const expressValidator = require('express-validator');
 const mongoose = require('mongoose');
 
+const xssFilter = require('x-xss-protection');
+const rateLimit = require('express-rate-limit');
+
 const { MongoURI } = require('./keys');
 
 const auth = require('./auth')();
@@ -38,6 +41,21 @@ module.exports = () => {
 			console.log(`[!] Error: ${err}`);
 		});
 
+	//disable x-powered-by and use xssfilter
+	app.disable('x-powered-by');
+	app.use(xssFilter());
+
+	if(process.env.NODE_ENV){
+		app.enable('trust proxy');
+	}
+
+	//limit the maximum request for each ip to 100 of a 15 minutes window
+	const limiter = rateLimit({
+		windowMs: 15*60*1000,
+		max: 100
+	});
+	app.use(limiter);
+	
 	//consign
 	consign().include('routes').into(app);
 
