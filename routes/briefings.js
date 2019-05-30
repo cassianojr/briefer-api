@@ -49,7 +49,7 @@ const logger = require('../config/logger');
  * 				"social_media": "facebook, twitter,...",
  * 				"outline": "outline of the project",
  * 				"objective": "objective of the project",
- * 				"createdBy": "user-id"
+ * 				"created_by": "user-id"
  * 			}
  * 		]
  */
@@ -58,7 +58,7 @@ router.get('/', auth.authenticate(), (req, res) => {
 	const token = req.headers.authorization.split(' ')[1];
 	const usr = jwt.decode(token, jwtCfg.jwtSecret);
 
-	Briefing.find({ createdBy: usr.id })
+	Briefing.find({ created_by: usr.id })
 		.then(result => res.json(result))
 		.catch(err => {
 			logger.error(err);
@@ -92,7 +92,7 @@ router.get('/', auth.authenticate(), (req, res) => {
  * @apiSuccess {String} description Some description of the project.
  * @apiSuccess {String} outline The outline of the project.
  * @apiSuccess {String} objective The objecive of the project.
- * @apiSuccess {String} createdBy The user that created this briefing.
+ * @apiSuccess {String} created_by The user that created this briefing.
  * 
  * @apiError Unauthorized The JWT token passed is invalid.
  * @apiErrorExample Error-Response:
@@ -122,7 +122,7 @@ router.get('/', auth.authenticate(), (req, res) => {
 * 		"social_media": "facebook, twitter,...",
 * 		"outline": "outline of the project",
 * 		"objective": "objective of the project",
-* 		"createdBy": "user-id"
+* 		"created_by": "user-id"
  */
 router.get('/briefing/:id', auth.authenticate(), (req, res) => {
 	var { id } = req.params;
@@ -160,7 +160,7 @@ router.get('/briefing/:id', auth.authenticate(), (req, res) => {
  * @apiParam {String} description Some description of the project.
  * @apiParam {String} outline The outline of the project.
  * @apiParam {String} objective The objecive of the project.
- * @apiParam {String} createdBy The user that created this briefing.
+ * @apiParam {String} created_by The user that created this briefing.
  * 
  * 
  * @apiError FieldEmpty This error is sended when one or more mandatory field was not sended. This return a array with the errors.
@@ -201,7 +201,7 @@ router.get('/briefing/:id', auth.authenticate(), (req, res) => {
 * 		"social_media": "facebook, twitter,...",
 * 		"outline": "outline of the project",
 * 		"objective": "objective of the project",
-* 		"createdBy": "user-id"
+* 		"created_by": "user-id"
  */
 router.post('/', auth.authenticate(), (req, res) => {
 	//input validations
@@ -227,7 +227,7 @@ router.post('/', auth.authenticate(), (req, res) => {
 
 	var briefing = req.body;
 
-	briefing.createdBy = usr.id;
+	briefing.created_by = usr.id;
 
 	const newBriefing = new Briefing(briefing);
 
@@ -265,7 +265,7 @@ router.post('/', auth.authenticate(), (req, res) => {
  * @apiParam {String} [description] Some description of the project.
  * @apiParam {String} [outline] The outline of the project.
  * @apiParam {String} [objective] The objecive of the project.
- * @apiParam {String} [createdBy] The user that created this briefing.
+ * @apiParam {String} [created_by] The user that created this briefing.
  * 
  * @apiError FieldEmpty This error is sended when one or more mandatory field was not sended. This return a array with the errors.
  * @apiErrorExample Error-Response:
@@ -306,7 +306,7 @@ router.post('/', auth.authenticate(), (req, res) => {
 * 		"social_media": "facebook, twitter,...",
 * 		"outline": "outline of the project",
 * 		"objective": "objective of the project",
-* 		"createdBy": "user-id"
+* 		"created_by": "user-id"
  */
 router.put('/update', auth.authenticate(), (req, res) => {
 	req.assert("_id", "You need to pass the briefing id.").notEmpty();
@@ -322,8 +322,8 @@ router.put('/update', auth.authenticate(), (req, res) => {
 	const token = req.headers.authorization.split(' ')[1];
 	const usr = jwt.decode(token, jwtCfg.jwtSecret);
 
-	if (usr.id !== briefing.createdBy) {
-		req.status(400).json("Você não pode alterar este briefing!");
+	if (usr.id !== briefing.created_by) {
+		res.status(400).json("Você não pode alterar este briefing!");
 		return;
 	}
 

@@ -49,12 +49,14 @@ module.exports = () => {
 		app.enable('trust proxy');
 	}
 
-	//limit the maximum request for each ip to 100 of a 15 minutes window
-	const limiter = rateLimit({
-		windowMs: 15*60*1000,
-		max: 100
-	});
-	app.use(limiter);
+	//limit the maximum request for each ip to 1000 of a 15 minutes window
+	// const limiter = rateLimit({
+	// 	windowMs: 15*60*1000,
+	// 	max: 1000
+	// });
+	// app.use(limiter);
+
+	// app.use('/api/', limiter);
 	
 	//consign
 	consign().include('routes').into(app);

@@ -50,7 +50,7 @@ const BriefingSchema = new mongoose.Schema({
 		type: String,
 		required: true
 	},
-	createdBy: {
+	created_by: {
 		type: mongoose.Schema.Types.ObjectId,
 		ref: 'User'
 	},
